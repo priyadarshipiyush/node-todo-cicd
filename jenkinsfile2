@@ -1,0 +1,56 @@
+pipeline{
+    agent any
+    
+    stages{
+        
+        stage('Code'){
+            steps{
+                
+                git url: 'https://github.com/priyadarshipiyush/node-todo-cicd.git', branch: 'prod'
+                
+            }
+            
+        }
+        
+        stage('Build'){
+            
+            steps{
+                sh 'docker build . -t priyadars/node-todo-cicd:latest'
+            }
+        } 
+            
+             stage('Push'){
+            
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]){
+    
+                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                    sh 'docker push priyadars/node-todo-cicd:latest'
+                }
+                
+            }
+                
+            }
+            
+        
+        stage('Test'){
+            steps{
+                 
+                 echo "Testing Code"
+                
+            }
+        
+            
+        }
+        
+        stage('Deploy'){
+            steps{
+                   sh "docker-compose down && docker-compose up -d"
+            
+            }
+        }
+        
+    }
+    
+}
+      
